@@ -5,6 +5,8 @@
 ![AI](https://img.shields.io/badge/AI-ML-orange)
 ![Status](https://img.shields.io/badge/Status-Production--Ready-success)
 
+[![CI Pipeline - AI Career Navigator](https://github.com/zeeshanali1009/AI-Career-Navigator/actions/workflows/ci.yml/badge.svg)](https://github.com/zeeshanali1009/AI-Career-Navigator/actions/workflows/ci.yml)
+
 🔗 **Live App:**
 👉 [https://ai-career-navigator-uxoabfydfuhxpy8eadn7h5.streamlit.app/](https://ai-career-navigator-uxoabfydfuhxpy8eadn7h5.streamlit.app/)
 
