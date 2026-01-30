@@ -5,8 +5,6 @@ from utils.job_matcher import load_jobs, match_jobs
 from utils.roadmap_generator import generate_roadmap
 import pandas as pd
 import matplotlib.pyplot as plt
-
-# ---------------------------
 # Streamlit Page Config
 # ---------------------------
 st.set_page_config(
