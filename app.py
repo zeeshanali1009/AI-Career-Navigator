@@ -1,128 +1,152 @@
 import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+
 from utils.resume_parser import extract_resume_text
 from utils.skill_matcher import extract_skills
 from utils.job_matcher import load_jobs, match_jobs
 from utils.roadmap_generator import generate_roadmap
-import pandas as pd
-import matplotlib.pyplot as plt
-# Streamlit Page Config
+
+# ---------------------------
+# Page Config
 # ---------------------------
 st.set_page_config(
     page_title="AI Career Navigator",
-    page_icon="📄",
+    page_icon="🚀",
     layout="wide"
 )
 
 # ---------------------------
-# Title & Instructions
+# Header
 # ---------------------------
-st.title("AI Career Navigator")
-st.subheader("Upload your resume (PDF or DOCX) to get AI/ML job matches and learning roadmap")
+st.title("🚀 AI Career Navigator")
+st.caption(
+    "Upload your resume to get AI/ML job matches, skill gaps, and a personalized learning roadmap."
+)
 
-st.markdown("""
-This tool extracts your skills from your resume and matches them against real AI/ML/Tech job postings.
-You will also see **missing skills** for each role and a **personalized learning roadmap**.
-""")
+st.markdown("---")
 
 # ---------------------------
-# File Uploader
+# Resume Upload Section
 # ---------------------------
+st.markdown("## 📤 Upload Resume")
+
 uploaded_file = st.file_uploader(
-    "Choose your resume file",
+    "Supported formats: PDF, DOCX",
     type=["pdf", "docx"]
 )
 
-if uploaded_file is not None:
-    # ---------------------------
-    # Extract Text from Resume
-    # ---------------------------
-    with st.spinner("Processing resume..."):
+# ===========================
+# MAIN LOGIC
+# ===========================
+if uploaded_file:
+
+    with st.spinner("🔍 Analyzing your resume..."):
         resume_text = extract_resume_text(uploaded_file)
         skills = extract_skills(resume_text)
 
-    st.success("✅ Resume processed successfully!")
+    st.success("✅ Resume processed successfully")
 
     # ---------------------------
-    # Display Resume Text & Skills
+    # Tabs Layout
     # ---------------------------
-    col1, col2 = st.columns(2)
+    tab1, tab2, tab3 = st.tabs(
+        ["📄 Resume & Skills", "🎯 Job Matches", "🛣️ Learning Roadmap"]
+    )
 
-    with col1:
-        st.markdown("### 📄 Extracted Resume Text")
-        st.text_area("", resume_text, height=300)
+    # ===========================
+    # TAB 1: Resume & Skills
+    # ===========================
+    with tab1:
+        col1, col2 = st.columns(2)
 
-    with col2:
-        st.markdown("### 🧠 Extracted Skills")
-        if skills:
-            for skill in skills:
-                st.markdown(f"- {skill}")
-        else:
-            st.warning("No skills detected.")
+        with col1:
+            with st.expander("📄 Extracted Resume Text", expanded=True):
+                st.text_area(
+                    "Resume Content",
+                    resume_text,
+                    height=350
+                )
 
-    # ---------------------------
-    # Load Real Jobs Data
-    # ---------------------------
+        with col2:
+            with st.expander("🧠 Extracted Skills", expanded=True):
+                if skills:
+                    st.write(", ".join(skills))
+                else:
+                    st.warning("No skills detected.")
+
+    # ===========================
+    # Load Jobs Data
+    # ===========================
     jobs_df = load_jobs("data/raw_jobs.csv")
 
-    # ---------------------------
-    # Match Jobs & Compute Skill Gap
-    # ---------------------------
     job_matches = match_jobs(skills, jobs_df)
 
-    # ---------------------------
-    # Display Top Job Matches
-    # ---------------------------
-    st.markdown("## 🎯 Top 10 Job Role Matches with Skill Gap")
-    for job in job_matches[:10]:
-        st.markdown(f"### {job['job_role']}")
-        st.progress(job["match_score"] / 100)
-        st.write(f"Match Score: **{job['match_score']}%**")
-        st.write(f"Matched Skills: {job['matched_skills']}")
-        st.write(f"Missing Skills: {job['missing_skills']}")
-        st.write(f"Skill Gap: **{job['gap_percentage']}%**")
-        # Optional: show company/location if available
-        if 'company' in jobs_df.columns and 'job_location' in jobs_df.columns:
-            st.write(f"Company: {jobs_df.loc[jobs_df['job_title']==job['job_role'], 'company'].values[0]}")
-            st.write(f"Location: {jobs_df.loc[jobs_df['job_title']==job['job_role'], 'job_location'].values[0]}")
-        st.markdown("---")
+    # ===========================
+    # TAB 2: Job Matches
+    # ===========================
+    with tab2:
+        st.markdown("## 🎯 Top Job Matches")
 
-    # ---------------------------
-    # Generate Learning Roadmap
-    # ---------------------------
-    st.markdown("## 🛣️ Personalized Learning Roadmap")
-    roadmap = generate_roadmap(job_matches, top_n=10)
+        for job in job_matches[:10]:
+            with st.expander(f"💼 {job['job_role']}"):
+                st.progress(job["match_score"] / 100)
 
-    if roadmap:
-        st.markdown("Priority learning order based on top 10 job gaps:")
-        for skill, freq in roadmap:
-            st.markdown(f"- **{skill}** (missing in {freq} top jobs)")
+                col1, col2 = st.columns(2)
 
-        # ---------------------------
-        # Download Roadmap Button
-        # ---------------------------
-        roadmap_df = pd.DataFrame(roadmap, columns=["Skill", "Missing in Top Jobs"])
-        st.download_button(
-            label="Download Learning Roadmap",
-            data=roadmap_df.to_csv(index=False),
-            file_name="learning_roadmap.csv",
-            mime="text/csv"
-        )
+                with col1:
+                    st.write(f"**Match Score:** {job['match_score']}%")
+                    st.write(f"**Skill Gap:** {job['gap_percentage']}%")
 
-        # ---------------------------
-        # Plot Top 10 Missing Skills
-        # ---------------------------
-        top_skills = [s for s,f in roadmap[:10]]
-        counts = [f for s,f in roadmap[:10]]
+                with col2:
+                    st.write("**Matched Skills**")
+                    st.write(job["matched_skills"])
 
-        plt.figure(figsize=(10,5))
-        plt.bar(top_skills, counts, color='skyblue')
-        plt.xticks(rotation=45, ha='right')
-        plt.xlabel("Skills")
-        plt.ylabel("Missing in Top Jobs")
-        plt.title("Top 10 Missing Skills in Top Job Matches")
-        plt.tight_layout()
+                st.markdown("**Missing Skills**")
+                st.write(job["missing_skills"])
 
-        st.pyplot(plt)
+    # ===========================
+    # TAB 3: Learning Roadmap
+    # ===========================
+    with tab3:
+        st.markdown("## 🛣️ Personalized Learning Roadmap")
 
-    else:
-        st.success("No missing skills! You are already well-prepared for top roles.")
+        roadmap = generate_roadmap(job_matches, top_n=10)
+
+        if roadmap:
+            roadmap_df = pd.DataFrame(
+                roadmap,
+                columns=["Skill", "Missing in Top Jobs"]
+            )
+
+            col1, col2 = st.columns([2, 1])
+
+            # ---- Roadmap Table
+            with col1:
+                st.dataframe(
+                    roadmap_df,
+                    use_container_width=True
+                )
+
+                st.download_button(
+                    label="📥 Download Learning Roadmap (CSV)",
+                    data=roadmap_df.to_csv(index=False),
+                    file_name="learning_roadmap.csv",
+                    mime="text/csv"
+                )
+
+            # ---- Roadmap Chart
+            with col2:
+                top_skills = roadmap_df["Skill"][:10]
+                counts = roadmap_df["Missing in Top Jobs"][:10]
+
+                plt.figure(figsize=(6, 4))
+                plt.bar(top_skills, counts)
+                plt.xticks(rotation=45, ha="right")
+                plt.title("Top Skill Gaps")
+                plt.tight_layout()
+
+                st.pyplot(plt)
+
+        else:
+            st.success("🎉 No major skill gaps found. You're in great shape!")
