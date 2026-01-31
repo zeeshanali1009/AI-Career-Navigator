@@ -29,15 +29,15 @@ This project is designed with **deployment-first thinking**, ensuring it runs sm
 
 ## 🎯 Key Features
 
-✅ Upload resume (**PDF / DOCX**)
-✅ Automatic resume text extraction
-✅ AI/ML skill extraction using NLP
-✅ Job matching against real Kaggle datasets
-✅ Skill gap analysis per job role
-✅ Personalized learning roadmap
-✅ Downloadable roadmap (CSV)
-✅ Clean, tab-based professional UI
-✅ Fully deployed on Streamlit Cloud
+1.  Upload resume (**PDF / DOCX**)
+2. Automatic resume text extraction
+3. AI/ML skill extraction using NLP
+4. Job matching against real Kaggle datasets
+5. Skill gap analysis per job role
+6. Personalized learning roadmap
+7. Downloadable roadmap (CSV)
+8. Clean, tab-based professional UI
+9. Fully deployed on Streamlit Cloud
 
 ---
 
